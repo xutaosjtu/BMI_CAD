@@ -16,31 +16,57 @@ which(sapply(data,class)=="factor")
 metabolites = colnames(data)[40:227]
 clinical = colnames(data)[12:39]
 
-
-index=apply(data[,metabolites],2, function(x) which(abs(x)>mean(x,na.rm=T)+4*sd(x,na.rm=T)|abs(x)<mean(x,na.rm=T)-4*sd(x,na.rm=T)))
+data[,metabolites] = sapply(data[,metabolites], function(x) {x[which(x==0)]=NA;return(x)})
+index=apply(data[, c(metabolites,clinical)],2, function(x) which(abs(x)>mean(x,na.rm=T)+4*sd(x,na.rm=T)|abs(x)<mean(x,na.rm=T)-4*sd(x,na.rm=T)))
 for(i in names(index)){
   if(length(index[[i]])!=0) data[index[[i]],i]=NA
 }
+data$weight = rep(1, nrow(data))
+data$weight[which(data$Birth.date %in% names(which(table(data$Birth.date)==2)))] = 0.5
 
-
-metabo.valid = metabolites[-which(sapply(data[,metabolites], function(x) sum(is.na(x)))>0.5*nrow(data))]
+metabo.valid = metabolites[-which(sapply(data[,metabolites], function(x) sum(is.na(x)))>0.05*nrow(data))]
+clinical.valid = clinical[-which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.1*nrow(data))]
 which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.5*nrow(data))
 metabo.valid = setdiff(metabo.valid,"PC.aa.C30.2")
 
-p.cor=cor(data[,c(clinical, metabo.valid)], use = "pairwise.complete.obs", method = "spearman")
+data$total.AC = apply(data[, 82:121],1 ,sum, na.rm = T)
+data$total.PC = apply(data[, 122:197],1 ,sum, na.rm = T)
+data$total.lysoPC = apply(data[, 198:211],1 ,sum, na.rm = T)
+data$total.SM = apply(data[,212:226], 1, sum, na.rm = T)
+data$total.SMOH = apply(data[, 212:216],1 ,sum, na.rm = T)
+data$total.SMnonOH = apply(data[,217:226], 1, sum, na.rm = T)
+data$total.AA = apply(data[,40:60], 1, sum, na.rm = T)
 
-require(gplots)
-pdf("correlation of the metabolites with other biomarkers2.pdf", height=10, width=10)
-heatmap.2(x=p.cor,
-          trace="none",keysize=0.5,
-          main = "spearman correlations",
-          col = greenred
-          )
-dev.off()
 
-pdf("distribution of the log transformed conventional markers.pdf", )
-par(mfrow=c(3,3))
-for(i in clinical){
-  hist(log(data[,i]), main = i)
-}
-dev.off()
+data$C2.C3.C0 = (data$C2+data$C3)/data$C0
+data$C2.C0 = data$C2/data$C0
+data$ADMA.Arg = data$ADMA/data$Arg
+data$totalDMA.Arg = data$total.DMA/data$Arg
+data$Cit.Arg = data$Cit/data$Arg
+data$Cit.Orn = data$Cit/data$Orn
+data$Kynurenine.Trp = data$Kynurenine/data$Trp
+data$Met.SO.Met = data$Met.SO/data$Met
+data$Orn.Arg = data$Orn/data$Arg
+data$Tyr.Phe = data$Tyr/data$Phe
+data$Putrescine.Orn = data$Putrescine/data$Orn
+data$SDMA.Arg = data$SDMA/data$Arg
+data$Serotonin.Trp = data$Serotonin/data$Trp
+data$Spermidine.Putrescine = data$Spermidine/data$Putrescine
+data$Spermine.Soermidine = data$Spermine/data$Spermidine
+data$total.AC.C0 = data$total.AC/data$C0
+
+data$CPT.I.ratio = 
+data$essentialAA = 
+data$nonessentialAA =
+data$fisher.ratio
+data$MUFA.PC
+data$PUFA.PC
+data$SFA.PC
+data$total.PC.SM 
+
+
+
+
+
+
+
