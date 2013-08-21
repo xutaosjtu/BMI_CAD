@@ -45,16 +45,8 @@ for(i in metabo.valid){
 row.names(rst) = metabo.valid
 
 
-
-## random forest
-tmp = data[,c(metabo.selected, "clinically.Ischemia")]
-tmp = na.omit(tmp)
-rf = randomForest(x = tmp[,1:(ncol(tmp)-1)], y = as.factor(tmp$clinically.Ischemia))
-rfselect = rfcv(tmp[,1:(ncol(tmp)-1)], as.factor(tmp$clinically.Ischemia))
-
-
 ###PLS
 colnames(data)[5:10], 
 require(pls)
-pls.rst = mvr(clinically.Ischemia~., data = data[,c(metabo.valid, "clinically.Ischemia")])
+pls.rst = mvr(clinically.Ischemia~., data = data[,c(metabo.asso2, "clinically.Ischemia")])
 plot(pls.rst$scores[,1:2], col = c("green","red")[data$clinically.Ischemia+1])
