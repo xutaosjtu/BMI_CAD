@@ -16,7 +16,7 @@ which(sapply(data,class)=="factor")
 metabolites = colnames(data)[40:227]
 clinical = colnames(data)[12:39]
 
-data[,metabolites] = sapply(data[,metabolites], function(x) {x[which(x==0)]=NA;return(x)})
+data[,c(metabolites, clinical)] = sapply(data[,c(metabolites, clinical)], function(x) {x[which(x==0)]=NA;return(x)})
 index=apply(data[, c(metabolites,clinical)],2, function(x) which(abs(x)>mean(x,na.rm=T)+4*sd(x,na.rm=T)|abs(x)<mean(x,na.rm=T)-4*sd(x,na.rm=T)))
 for(i in names(index)){
   if(length(index[[i]])!=0) data[index[[i]],i]=NA
@@ -24,8 +24,8 @@ for(i in names(index)){
 data$weight = rep(1, nrow(data))
 data$weight[which(data$Birth.date %in% names(which(table(data$Birth.date)==2)))] = 0.5
 
-metabo.valid = metabolites[-which(sapply(data[,metabolites], function(x) sum(is.na(x)))>0.05*nrow(data))]
-clinical.valid = clinical[-which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.1*nrow(data))]
+metabo.valid = metabolites[-which(sapply(data[,metabolites], function(x) sum(is.na(x)))>0.5*nrow(data))]
+clinical.valid = clinical[-which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.5*nrow(data))]
 which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.5*nrow(data))
 metabo.valid = setdiff(metabo.valid,"PC.aa.C30.2")
 

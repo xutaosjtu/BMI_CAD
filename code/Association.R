@@ -22,7 +22,7 @@ dev.off()
 pdf("distribution of the log transformed conventional markers.pdf", )
 par(mfrow=c(3,3))
 for(i in clinical){
-  hist(log(data[,i]), main = i)
+  hist((data[,i]), main = i, xlab="value")
 }
 dev.off()
 
@@ -33,10 +33,10 @@ model.ref = glm(clinically.Ischemia~., data[,c("clinically.Ischemia",clinical, "
 rst = NULL
 for(i in metabo.valid){
   data$m = scale(log(data[,i]))
-  model = glm(clinically.Ischemia~ m + age + as.factor(sex) + 
-                CVRF..aHT + CVRF..DMT2+ CVRF..Smoking +
-                HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. ,#+ CRP..mg.l.
-                  data = data, weights = data$weight,
+  model = glm(clinically.Ischemia~ m + age + as.factor(sex)  
+                + CVRF..aHT + CVRF..DMT2+ CVRF..Smoking + CVRF..Family
+                +HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. + Triglyceride..mmol.L.+Glucose..mg.dL.+HbA1c....+Chitinase.1+Insulin..mU.l.,
+                  data = data, #weights = data$weight,
               #subset = which(data$sex==1),
                   family=binomial
   )
