@@ -18,7 +18,7 @@ model.penal = penalized(
   lambda1 = 2, lambda2= 0 #penalization parameter 
 )
 
-#### stepwise selection of cox regression
+#### stepwise selection
 model = glm(clinically.Ischemia~., data=tmp[,c("clinically.Ischemia", feature.selected1)])
 model.step = step(model, direction="backward")
 fit = roc(model.step$y, predict(model.step))
