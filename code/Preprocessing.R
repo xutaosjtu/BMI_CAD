@@ -14,6 +14,8 @@ date.birth = as.numeric(date.birth)
 date.test = as.numeric(date.test)
 data$age = date.test-date.birth
 
+data$age[193] = 69
+
 ## rename some columns
 colnames(data)[2] = "Myocardial.scar"
 colnames(data)[11] = "sex"
@@ -37,7 +39,7 @@ data$weight = rep(1, nrow(data))
 data$weight[which(data$Birth.date %in% names(which(table(data$Birth.date)==2)))] = 0.5
 
 metabo.valid = metabolites[-which(sapply(data[,metabolites], function(x) sum(is.na(x)))>0.5*nrow(data))]
-clinical.valid = clinical[-which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.5*nrow(data))]
+clinical.valid = clinical[-which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.3*nrow(data))]
 which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.5*nrow(data))
 metabo.valid = setdiff(metabo.valid,"PC.aa.C30.2")
 
