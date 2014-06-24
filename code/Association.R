@@ -19,6 +19,17 @@ rst = rbind(rst, p)
 rownames(rst) = c("type0", "type1", "p")
 write.csv(rst, "population characteristics_MyoScar0.csv")
 
+rst = characteristics(data[which(data$Myocardial.scar==0),other], data$clinically.Ischemia[which(data$Myocardial.scar==0)], 2, na.rm=T)
+sapply(data[which(data$Myocardial.scar==0),other], table, data$clinically.Ischemia[which(data$Myocardial.scar==0)])
+
+sapply(data[which(data$Myocardial.scar==1),other[-c(1,8)]], 
+       function(x) {
+         (tmp = fisher.test(table(x, data$clinically.Ischemia[which(data$Myocardial.scar==1)])))
+       }
+)
+wilcox.test(age ~ clinically.Ischemia, data, subset = data$Myocardial.scar==1)
+
+
 ## Correlation between the conventional markers and metabolites
 cor.mtest <- function(mat, conf.level = 0.95, method = "pearson"){
   mat <- as.matrix(mat)
