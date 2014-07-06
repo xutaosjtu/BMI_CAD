@@ -9,6 +9,9 @@ for(i in c(clinical.valid, metabo.valid)){
 }
 dev.off()
 
+other = colnames(data)[c(2, 6:11)]
+other = c(other, "age")
+
 rst = characteristics(data[which(data$Myocardial.scar==0),clinical], data$clinically.Ischemia[which(data$Myocardial.scar==0)], 2, na.rm=T)
 p=NULL
 for(i in clinical){
@@ -19,8 +22,8 @@ rst = rbind(rst, p)
 rownames(rst) = c("type0", "type1", "p")
 write.csv(rst, "population characteristics_MyoScar0.csv")
 
-rst = characteristics(data[which(data$Myocardial.scar==0),other], data$clinically.Ischemia[which(data$Myocardial.scar==0)], 2, na.rm=T)
-sapply(data[which(data$Myocardial.scar==0),other], table, data$clinically.Ischemia[which(data$Myocardial.scar==0)])
+rst = characteristics(data[which(data$Myocardial.scar==1),other], data$clinically.Ischemia[which(data$Myocardial.scar==1)], 2, na.rm=T)
+sapply(data[which(data$Myocardial.scar==1),other], table, data$clinically.Ischemia[which(data$Myocardial.scar==1)])
 
 sapply(data[which(data$Myocardial.scar==1),other[-c(1,8)]], 
        function(x) {

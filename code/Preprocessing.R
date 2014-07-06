@@ -15,6 +15,8 @@ date.test = as.numeric(date.test)
 data$age = date.test-date.birth
 
 data$age[193] = 69
+data$CVRF..DMT2[123] = "1"
+data$CVRF..DMT2 = as.numeric(data$CVRF..DMT2)
 
 ## rename some columns
 colnames(data)[2] = "Myocardial.scar"
