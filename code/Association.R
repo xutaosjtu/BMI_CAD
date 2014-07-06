@@ -77,6 +77,22 @@ for(i in clinical){
 }
 dev.off()
 
+
+## Associations between conventionally measured biomarkers and clinical ischemia
+rst = NULL;
+for(i in clinical){
+  data$m = scale(data[,i])
+  model = glm(clinically.Ischemia ~. 
+              , data = data[, c("clinically.Ischemia", "m", other[-1])]
+              , family = binomial
+              , subset = data$Myocardial.scar==1
+  )
+  rst = rbind(rst, summary(model)$coef[2,])
+}
+rownames(rst) = clinical
+write.csv(rst, "association between the conventionally measured biomarkers and clinical ischemia_Scar1.csv")
+
+
 ## association with clinical relevant ischemia
 model.ref = glm(clinically.Ischemia~., data[,c("clinically.Ischemia",clinical, "sex","CVRF..aHT","CVRF..HLP","CVRF..DMT2","CVRF..Smoking","age", "Myocardial.scar")], family=binomial)
 
