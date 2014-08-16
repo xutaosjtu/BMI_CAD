@@ -96,25 +96,31 @@ write.csv(rst, "association between the conventionally measured biomarkers and c
 ## association with clinical relevant ischemia
 model.ref = glm(clinically.Ischemia~., data[,c("clinically.Ischemia",clinical, "sex","CVRF..aHT","CVRF..HLP","CVRF..DMT2","CVRF..Smoking","age", "Myocardial.scar")], family=binomial)
 
-
+##############################################
+##  adjustment:
+##    unadjusted
+##    crude: adjusted for age, sex
+##    multivar: adjusted for aHT, DMT2, smoking, family history, HDL-cholesterol, total cholesterol, triglyceride, glucose, HbA1c, insulin
+##    multivar2: adjusted for aHT, DMT2, smoking, family history, HDL-cholesterol, total cholesterol
+##    multivar3: adjusted for aHT, DMT2, smoking, family history
 rst = NULL
 for(i in metabo.valid){
   data$m = scale(log(data[,i]))
   model = glm(clinically.Ischemia~ m + as.factor(Myocardial.scar) 
-#                + age + as.factor(sex)  
-#               + CVRF..aHT + CVRF..DMT2+ CVRF..Smoking + CVRF..Family
-#               + HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. 
+               + age + as.factor(sex)  
+              + CVRF..aHT + CVRF..DMT2+ CVRF..Smoking + CVRF..Family
+#              + HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. 
 #               + Triglyceride..mmol.L.+Glucose..mg.dL.+HbA1c....
-#               +Insulin..mU.l. #+ Chitinase.1
+#               +Ins 
                   , data = data, 
-                  #, subset = which(data$Myocardial.scar==1)
+                  #, subset = which(data$Myocardial.scar==0)
                   , family=binomial
   )
   coefs = summary(model)$coef
   rst = rbind(rst,c(coefs["m",]))
 }
 row.names(rst) = metabo.valid
-write.csv(rst, file = "association between Ischemia and metabolites_unadj_adj_MyoScar.csv")
+write.csv(rst, file = "association between Ischemia and metabolites_multivar3_adjust MyoScar.csv")
 
 ## Association between clinical Ischemia and other clinical measurements
 model = glm(clinically.Ischemia~ #as.factor(Myocardial.scar) 
