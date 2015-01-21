@@ -31,14 +31,40 @@ which(sapply(data,class)=="factor")
 metabolites = colnames(data)[41:226]
 clinical = colnames(data)[13:40]
 
+### additional data of Stathmin(ng/ul), chitinase 1(ng/ul), chitinase 3(ng/ul) and EF-1a(AU)
+data.add_1 = read.xlsx(file = "data/Finale Ergebnisse Rudolph August 2014.xlsx", sheetIndex = 2)
+data.add_2 = read.xlsx(file = "data/Finale Ergebnisse Rudolph August 2014.xlsx", sheetIndex = 3)
+data.add_3 = read.xlsx(file = "data/Finale Ergebnisse Rudolph August 2014.xlsx", sheetIndex = 4)
+
+for(n in colnames(data.add_1)[-1]){
+  boxplot(data.add_1[,n], data.add_2[,n], data.add_3[,n], main = n)
+}
+
+data.add = rbind(data.add_1, data.add_2, data.add_3)
+data = merge(data, data.add, by.x = "ID_Blood.sample", by.y = "Probe.ID", all.x = T)
+###
+clinical = c(clinical, colnames(data.add)[c(3,5,7,9)])
+
+## 
+data$EF1a_2 = data$EF1a
+data$EF1a_2[which(data$ID_Blood.sample %in% c(1:81))]=NA
+data$EF.1a..AU._2 = data$EF.1a..AU.
+data$EF.1a..AU._2[which(data$ID_Blood.sample %in% c(1:81))]=NA
+
 ## Preprocessing
-data[,c(metabolites, clinical)] = sapply(data[,c(metabolites, clinical)], function(x) {x[which(x==0)]=NA;return(x)})
-index=apply(data[, c(metabolites,clinical)],2, function(x) which(abs(x)>mean(x,na.rm=T)+4*sd(x,na.rm=T)|abs(x)<mean(x,na.rm=T)-4*sd(x,na.rm=T)))
+data[,c(metabolites, clinical)] = sapply(data[,c(metabolites, clinical)], 
+                                         function(x) {x[which(x==0)]=NA;return(x)})
+
+index=apply(data[, c(metabolites,clinical)],2, 
+            function(x) which(abs(x)>mean(x,na.rm=T)+4*sd(x,na.rm=T)|abs(x)<mean(x,na.rm=T)-4*sd(x,na.rm=T)))
+
 for(i in names(index)){
   if(length(index[[i]])!=0) data[index[[i]],i]=NA
 }
+
 data$weight = rep(1, nrow(data))
 data$weight[which(data$Birth.date %in% names(which(table(data$Birth.date)==2)))] = 0.5
+
 
 metabo.valid = metabolites[-which(sapply(data[,metabolites], function(x) sum(is.na(x)))>0.5*nrow(data))]
 clinical.valid = clinical[-which(sapply(data[,clinical], function(x) sum(is.na(x)))>0.3*nrow(data))]
