@@ -6,6 +6,9 @@ require(xlsx)
 setwd("../../../Dropbox/BMI CAD/")
 #data = read.csv("data/BMI-CAD_Wang-Sattler.csv")
 data = read.csv(file="data//BMI-CAD_Wang-Sattler_04_2014_2.csv", stringsAsFactors = F)
+cTnl = read.csv(file="data/cTnl.txt", stringsAsFactors = F, sep = "\t")
+
+data = merge(data, cTnl, by.x = "ID_Blood.sample", by.y = "Barcode")
 
 ## Calculate the age of the participants
 date.test = sapply(data$MRI..blood.draw, function(x) unlist(strsplit(as.character(x),split="/",fixed=T))[3])
