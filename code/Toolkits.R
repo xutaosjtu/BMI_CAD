@@ -43,6 +43,8 @@ characteristics = function(data , factor, d, ...)
 			function(x) {
 				m = tapply(x, INDEX = factor, mean, ...)
 				s = tapply(x, INDEX = factor, sd, ...)
+        print(m)
+        print(s)
 				m = round(m , digits = d)
 				s = round(s, digits = d)
 				return(paste(m, " (", s, ")", sep = ""))

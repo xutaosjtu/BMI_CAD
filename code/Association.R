@@ -87,16 +87,39 @@ dev.off()
 ## Associations between conventionally measured biomarkers and clinical ischemia
 rst = NULL;
 for(i in clinical){
-  data$m = scale(data[,i])
+  data$m = scale(log(data[,i]))
   model = glm(clinically.Ischemia ~. 
               , data = data[, c("clinically.Ischemia", "m", other[-1])]
               , family = binomial
-              , subset = data$Myocardial.scar==1
+               , subset = data$Myocardial.scar==1
   )
   rst = rbind(rst, summary(model)$coef[2,])
 }
 rownames(rst) = clinical
+write.table(rst, "results/association between cTnI and clinical ischemia.txt", sep = "\t", quote = F)
 write.csv(rst, "association between the conventionally measured biomarkers and clinical ischemia.csv")
+
+## associations between metabolites and cTnI
+rst = NULL
+for (i in metabo.valid){
+  data$m = scale(log(data[,i]))
+  model = lm(cTnI.pg.mL ~ m 
+             + age + as.factor(sex)  
+             + CVRF..aHT + CVRF..DMT2+ CVRF..Smoking + CVRF..Family
+             + HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. 
+             + Triglyceride..mmol.L.+Glucose..mg.dL.+HbA1c....
+             + Insulin..mU.l.,
+            subset = which(data$Myocardial.scar==1),
+             data)
+  coefs = summary(model)$coef
+#   coefs = cbind(OR = exp(coefs[,1]), 
+#                 lower = exp(coefs[,1] - 1.96*coefs[,2]),
+#                 upper = exp(coefs[,1] + 1.96*coefs[,2]),
+#                 P = coefs[,4])
+  rst = rbind(rst, coefs[2,c(1,2,4)])
+}
+rownames(rst) = metabo.valid
+write.table(rst, file = "results/associations between metabolites and cTnI.txt", sep = "\t", quote = F)
 
 
 ## association with clinical relevant ischemia
@@ -114,10 +137,10 @@ for(i in metabo.valid){
   data$m = scale(log(data[,i]))
   model = glm(clinically.Ischemia~ m * as.factor(Myocardial.scar) 
                  + age + as.factor(sex)  
-              + CVRF..aHT + CVRF..DMT2+ CVRF..Smoking + CVRF..Family
-              + HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. 
-              + Triglyceride..mmol.L.+Glucose..mg.dL.+HbA1c....
-              + Insulin..mU.l. 
+                + CVRF..aHT + CVRF..DMT2+ CVRF..Smoking + CVRF..Family
+                + HDL.Cholesterin..mmol.L. + Cholesterin..mmol.L. 
+                + Triglyceride..mmol.L.+Glucose..mg.dL.+HbA1c....
+                + Insulin..mU.l. 
                   , data = data, 
 #                   , subset = which(data$Myocardial.scar==0)
                   , family=binomial
