@@ -1,50 +1,57 @@
 ## random forest
+if(!require(randomForest)) install.packages("randomForest")
 require(randomForest)
-tmp = data[,c(metabo.asso,clinical.asso, other, "clinically.Ischemia")]
+tmp = data[,c(metabo.valid,clinical, other, "clinically.Ischemia")]
 tmp = na.omit(tmp)
 
 table(data$clinically.Ischemia)
 index.control = which(data$clinically.Ischemia==0)
 index.case = which(data$clinically.Ischemia==1)
-set.seed(10)
-index.train = c(sample(index.control, 200), sample(index.case, 60))
+set.seed(12)
+index.train = c(sample(index.control, 110), sample(index.case, 36))
 index.test = c(1:nrow(data))[-index.train]
+
+tmp = data[,c("clinically.Ischemia", clinical, other, metabo.valid)]
+tmp[which(is.na(tmp), arr.ind = T)]=0
 
 require(rpart)
 fit.1 = rpart(as.factor(clinically.Ischemia) ~ ., 
-              data = data[,c("clinically.Ischemia",  metabo.selected, clinical.selected, other)], 
-              subset = index.train
+              data = tmp, 
+              subset = index.train, 
+              method = "class"
               )
 plot(fit.1); text(fit.1)
+if(!require(ROCR)) install.packages("ROCR")
 require(ROCR)
-train.pred=predict(fit.1, type="prob", newdata=data[index.train,])
-pred = prediction(train.pred[,2], data$clinically.Ischemia[index.train])
+train.pred=predict(fit.1, type="prob", newdata=tmp[index.train,])
+pred = prediction(train.pred[,2], tmp$clinically.Ischemia[index.train])
 perf.train = performance(pred,  "tpr", "fpr")
 auc.train = performance(pred, "auc")
 plot(perf.train)
 
-test.pred=predict(fit.1, type="prob", newdata=data[index.test,])
-pred= prediction(test.pred[,2], data$clinically.Ischemia[index.test])
+test.pred=predict(fit.1, type="prob", newdata=tmp[index.test,])
+pred= prediction(test.pred[,2], tmp$clinically.Ischemia[index.test])
 perf.test = performance(pred,  "tpr", "fpr")
 auc.test = performance(pred, "auc")
 plot(perf.test, add = T, col = "red")
 abline(0,1, lty = 2)
 
 require(randomForest)
+
 fit.2 = randomForest(as.factor(clinically.Ischemia) ~ ., 
-              data = data[,c("clinically.Ischemia", clinical.valid, other, metabo.valid)], 
+              data =  tmp,
               subset = index.train,
               na.action = na.omit
 )
 varImpPlot(fit.2)
 train.pred = predict(fit.2, type="prob")
-pred = prediction(train.pred[,2], data$clinically.Ischemia[index.train])
+pred = prediction(train.pred[,2], fit.2$y)
 perf.train = performance(pred,  "tpr", "fpr")
 auc.train = performance(pred, "auc")
 plot(perf.train)
 
-test.pred=predict(fit.2, type="prob", newdata=data[index.test,])
-pred= prediction(test.pred[,2], data$clinically.Ischemia[index.test])
+test.pred=predict(fit.2, type="prob", newdata=tmp[index.test,])
+pred= prediction(test.pred[,2], tmp$clinically.Ischemia[index.test])
 perf.test = performance(pred,  "tpr", "fpr")
 auc.test = performance(pred, "auc")
 plot(perf.test, add = T, col = "red")
@@ -57,22 +64,53 @@ clinical.selected = intersect(candidates, clinical)
 ##boosting
 require(ada)
 fit.3 = ada(as.factor(clinically.Ischemia) ~ ., 
-    data = data[,c("clinically.Ischemia", clinical.selected, other)], 
-    subset = index.train
+    data = tmp, 
+    subset = index.train, 
+    bag.frac = 0.2, 
+    nu=0.1,
+    iter=100
     )
-train.pred = predict(fit.3, newdata=data[index.train,], type="prob")
-pred = prediction(train.pred[,2], data$clinically.Ischemia[index.train])
+train.pred = predict(fit.3, newdata=tmp[index.train,], type="prob")
+pred = prediction(train.pred[,2], tmp$clinically.Ischemia[index.train])
 perf.train = performance(pred,  "tpr", "fpr")
 auc.train = performance(pred, "auc")
 plot(perf.train)
 
-test.pred=predict(fit.3, type="prob", newdata=data[index.test,])
-pred= prediction(test.pred[,2], data$clinically.Ischemia[index.test])
+test.pred=predict(fit.3, type="prob", newdata=tmp[index.test,])
+pred= prediction(test.pred[,2], tmp$clinically.Ischemia[index.test])
 perf.test = performance(pred,  "tpr", "fpr")
 auc.test = performance(pred, "auc")
 plot(perf.test, add = T, col = "red")
 abline(0,1, lty = 2)
 
+## Caret
+require(caret)
+cl <- makePSOCKcluster(4)
+registerDoParallel(cl)
+cvCtrl <- trainControl(method = "repeatedcv", repeats = 3,
+                       summaryFunction = twoClassSummary,
+                       classProbs = TRUE)
+model = train(as.factor(clinically.Ischemia) ~ .,
+              data = tmp,
+              subset = index.train,
+              method = "ada",
+#               trControl = cvCtrl,
+#               metric = "ROC",
+              tuneLength = 10)
+stopCluster(cl)
+
+train.pred=predict(model$finalModel, newdata = tmp[index.train,], type = "probs")
+pred = prediction(train.pred[,2], tmp$clinically.Ischemia[index.train])
+perf.train = performance(pred,  "tpr", "fpr")
+auc.train = performance(pred, "auc")
+plot(perf.train)
+
+test.pred=predict(model$finalModel, newdata = tmp[index.test,], type = "probs")
+pred= prediction(test.pred[,2], tmp$clinically.Ischemia[index.test])
+perf.test = performance(pred,  "tpr", "fpr")
+auc.test = performance(pred, "auc")
+plot(perf.test, add = T, col = "red")
+abline(0,1, lty = 2)
 
 model = glm(as.factor(clinically.Ischemia)~., 
             data=tmp[,c("clinically.Ischemia", metabo.selected,other)],
